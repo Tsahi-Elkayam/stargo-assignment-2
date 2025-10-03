@@ -1,10 +1,28 @@
 # Prometheus for Render with dynamic config
 FROM prom/prometheus:latest
 
-# Copy entrypoint script
-COPY prometheus-entrypoint.sh /prometheus-entrypoint.sh
-RUN chmod +x /prometheus-entrypoint.sh
+# Create entrypoint script inline
+RUN echo '#!/bin/sh' > /entrypoint.sh && \
+    echo 'cat > /etc/prometheus/prometheus.yml <<EOF' >> /entrypoint.sh && \
+    echo 'global:' >> /entrypoint.sh && \
+    echo '  scrape_interval: 60s' >> /entrypoint.sh && \
+    echo '  evaluation_interval: 60s' >> /entrypoint.sh && \
+    echo '' >> /entrypoint.sh && \
+    echo 'scrape_configs:' >> /entrypoint.sh && \
+    echo '  - job_name: "bitcoin-exporter"' >> /entrypoint.sh && \
+    echo '    scheme: https' >> /entrypoint.sh && \
+    echo '    static_configs:' >> /entrypoint.sh && \
+    echo '      - targets: ["${BITCOIN_EXPORTER_URL}"]' >> /entrypoint.sh && \
+    echo '    scrape_interval: 60s' >> /entrypoint.sh && \
+    echo '    scrape_timeout: 10s' >> /entrypoint.sh && \
+    echo 'EOF' >> /entrypoint.sh && \
+    echo '' >> /entrypoint.sh && \
+    echo 'echo "Prometheus config generated"' >> /entrypoint.sh && \
+    echo 'cat /etc/prometheus/prometheus.yml' >> /entrypoint.sh && \
+    echo '' >> /entrypoint.sh && \
+    echo 'exec /bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.listen-address=:${PORT:-9090}' >> /entrypoint.sh && \
+    chmod +x /entrypoint.sh
 
 EXPOSE 9090
 
-ENTRYPOINT ["/prometheus-entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
