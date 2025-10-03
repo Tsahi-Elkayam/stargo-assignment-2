@@ -1,13 +1,13 @@
-# Prometheus Dockerfile for Railway
+# Prometheus Dockerfile for Render
 FROM prom/prometheus:latest
 
 # Copy configuration
-COPY prometheus-railway.yml /etc/prometheus/prometheus.yml
+COPY prometheus.yml /etc/prometheus/prometheus.yml
 
-# Railway will set PORT dynamically
+# Render will set PORT dynamically
 EXPOSE 9090
 
-# Create entrypoint script to use Railway's PORT
+# Create entrypoint script to use Render's PORT
 RUN echo '#!/bin/sh\n\
 exec prometheus \\
   --config.file=/etc/prometheus/prometheus.yml \\
