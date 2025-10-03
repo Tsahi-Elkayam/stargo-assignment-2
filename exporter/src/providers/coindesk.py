@@ -15,12 +15,12 @@ class CoindeskProvider(BaseProvider):
     def __init__(self, config: Dict[str, Any]):
         """Initialize Coindesk provider."""
         super().__init__(config)
-        # Use configured endpoint, or fall back to CoinGecko (since Coindesk is blocked)
+        # Use Coinbase API (better rate limits, no auth required)
         if not self.endpoint:
-            self.endpoint = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
+            self.endpoint = "https://api.coinbase.com/v2/prices/BTC-USD/spot"
     
     def fetch_data(self) -> Optional[Dict[str, Any]]:
-        """Fetch Bitcoin price from Coindesk API."""
+        """Fetch Bitcoin price from API."""
         try:
             max_attempts = self.retry_config.get('max_attempts', 3)
             backoff = self.retry_config.get('backoff', 2)
@@ -42,19 +42,23 @@ class CoindeskProvider(BaseProvider):
                         raise
                         
         except Exception as e:
-            logger.error(f"Failed to fetch data from Coindesk: {e}")
+            logger.error(f"Failed to fetch data: {e}")
             return None
     
     def parse_response(self, response: Dict[str, Any]) -> Dict[str, float]:
-        """Parse API response (supports both Coindesk and CoinGecko formats)."""
+        """Parse API response (supports Coinbase, CoinGecko, and Coindesk formats)."""
         if not response:
             return {}
         
         try:
             metrics = {}
             
-            # Try CoinGecko format first (simpler structure)
-            if 'bitcoin' in response and 'usd' in response['bitcoin']:
+            # Try Coinbase format (new default)
+            if 'data' in response and 'amount' in response['data']:
+                metrics['bitcoin_price'] = float(response['data']['amount'])
+                logger.info(f"Parsed Coinbase response: ${metrics['bitcoin_price']}")
+            # Try CoinGecko format
+            elif 'bitcoin' in response and 'usd' in response['bitcoin']:
                 metrics['bitcoin_price'] = float(response['bitcoin']['usd'])
                 logger.info(f"Parsed CoinGecko response: ${metrics['bitcoin_price']}")
             # Try Coindesk format
