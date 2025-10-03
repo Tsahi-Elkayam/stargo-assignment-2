@@ -1,15 +1,20 @@
-# Grafana for Render
+# Grafana for Render with dynamic datasource config
 FROM grafana/grafana:latest
 
-# Copy dashboards and configs (same as docker-compose volumes)
+# Copy dashboards and provisioning
 COPY dashboards /var/lib/grafana/dashboards
 COPY dashboards/provisioning/dashboards.yaml /etc/grafana/provisioning/dashboards/dashboards.yaml
-COPY helm/values/grafana-datasources.yaml /etc/grafana/provisioning/datasources/datasources.yaml
 
-# Same environment as local docker-compose
+# Copy entrypoint script
+COPY grafana-entrypoint.sh /grafana-entrypoint.sh
+RUN chmod +x /grafana-entrypoint.sh
+
+# Environment setup
 ENV GF_AUTH_ANONYMOUS_ENABLED=true \
     GF_AUTH_ANONYMOUS_ORG_ROLE=Admin \
     GF_AUTH_DISABLE_LOGIN_FORM=true \
     GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/bitcoin-simple.json
 
 EXPOSE 3000
+
+ENTRYPOINT ["/grafana-entrypoint.sh"]

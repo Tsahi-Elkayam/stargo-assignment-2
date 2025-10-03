@@ -1,11 +1,10 @@
-# Prometheus for Render - matches local docker-compose setup
+# Prometheus for Render with dynamic config
 FROM prom/prometheus:latest
 
-# Copy the working config from helm/values (same as docker-compose volume)
-COPY helm/values/prometheus-config.yaml /etc/prometheus/prometheus.yml
+# Copy entrypoint script
+COPY prometheus-entrypoint.sh /prometheus-entrypoint.sh
+RUN chmod +x /prometheus-entrypoint.sh
 
 EXPOSE 9090
 
-# Same command as docker-compose
-CMD ["--config.file=/etc/prometheus/prometheus.yml", \
-     "--storage.tsdb.path=/prometheus"]
+ENTRYPOINT ["/prometheus-entrypoint.sh"]
