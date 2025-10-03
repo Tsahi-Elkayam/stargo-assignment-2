@@ -9,10 +9,6 @@ services:
     envVars:
       - key: PORT
         value: 8000
-      - key: EXPORTER_PORT
-        value: 8000
-      - key: SCRAPE_INTERVAL
-        value: 60
 
   # Prometheus Service
   - type: web
@@ -25,10 +21,7 @@ services:
       - key: PORT
         value: 9090
       - key: BITCOIN_EXPORTER_URL
-        fromService:
-          type: web
-          name: bitcoin-exporter
-          property: host
+        value: bitcoin-exporter.onrender.com
 
   # Grafana Service
   - type: web
@@ -49,7 +42,4 @@ services:
       - key: GF_SECURITY_ALLOW_EMBEDDING
         value: true
       - key: PROMETHEUS_URL
-        fromService:
-          type: web
-          name: prometheus
-          property: host
+        value: prometheus-xr0g.onrender.com
