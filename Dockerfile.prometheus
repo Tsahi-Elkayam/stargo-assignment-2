@@ -1,11 +1,11 @@
-# Prometheus for Render
+# Prometheus for Render - matches local docker-compose setup
 FROM prom/prometheus:latest
 
-# Copy the working config
+# Copy the working config from helm/values (same as docker-compose volume)
 COPY helm/values/prometheus-config.yaml /etc/prometheus/prometheus.yml
 
 EXPOSE 9090
 
+# Same command as docker-compose
 CMD ["--config.file=/etc/prometheus/prometheus.yml", \
-     "--storage.tsdb.path=/prometheus", \
-     "--web.listen-address=:${PORT:-9090}"]
+     "--storage.tsdb.path=/prometheus"]
