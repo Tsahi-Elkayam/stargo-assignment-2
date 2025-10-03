@@ -1,14 +1,19 @@
 # Grafana Dockerfile for Render
 FROM grafana/grafana:latest
 
-# Copy provisioning files
+# Switch to root to copy files
+USER root
+
+# Create directory and copy files
+RUN mkdir -p /var/lib/grafana/dashboards
 COPY grafana-datasources.yaml /etc/grafana/provisioning/datasources/datasources.yaml
 COPY dashboards/bitcoin-simple.json /var/lib/grafana/dashboards/bitcoin-dashboard.json
 COPY dashboards/provisioning/dashboards.yaml /etc/grafana/provisioning/dashboards/dashboards.yaml
 
-# Set permissions
-USER root
-RUN chown -R grafana:grafana /var/lib/grafana/dashboards
+# Fix ownership
+RUN chown -R grafana:grafana /var/lib/grafana /etc/grafana/provisioning
+
+# Switch back to grafana user
 USER grafana
 
 # Environment setup
@@ -17,5 +22,4 @@ ENV GF_AUTH_ANONYMOUS_ENABLED=true \
     GF_AUTH_DISABLE_LOGIN_FORM=true \
     GF_USERS_ALLOW_SIGN_UP=false
 
-# Grafana will use PORT from Render
 EXPOSE 3000
