@@ -3,7 +3,7 @@ services:
   - type: web
     name: bitcoin-exporter
     env: docker
-    dockerfilePath: ./Dockerfile.simple
+    dockerfilePath: ./cloud-deploy/Dockerfile.simple
     region: oregon
     plan: free
     healthCheckPath: /health
@@ -19,7 +19,7 @@ services:
   - type: web
     name: prometheus
     env: docker
-    dockerfilePath: ./Dockerfile.prometheus
+    dockerfilePath: ./cloud-deploy/Dockerfile.prometheus
     region: oregon
     plan: free
     healthCheckPath: /-/healthy
@@ -36,7 +36,7 @@ services:
   - type: web
     name: grafana
     env: docker
-    dockerfilePath: ./Dockerfile.grafana
+    dockerfilePath: ./cloud-deploy/Dockerfile.grafana
     region: oregon
     plan: free
     healthCheckPath: /api/health

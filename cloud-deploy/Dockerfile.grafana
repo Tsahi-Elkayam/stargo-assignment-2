@@ -1,0 +1,21 @@
+# Grafana Dockerfile for Railway
+FROM grafana/grafana:latest
+
+# Copy provisioning files
+COPY grafana-datasources-railway.yaml /etc/grafana/provisioning/datasources/datasources.yaml
+COPY dashboards/bitcoin-simple.json /var/lib/grafana/dashboards/bitcoin-dashboard.json
+COPY dashboards/provisioning/dashboards.yaml /etc/grafana/provisioning/dashboards/dashboards.yaml
+
+# Set permissions
+USER root
+RUN chown -R grafana:grafana /var/lib/grafana/dashboards
+USER grafana
+
+# Environment setup for Railway
+ENV GF_AUTH_ANONYMOUS_ENABLED=true \
+    GF_AUTH_ANONYMOUS_ORG_ROLE=Admin \
+    GF_AUTH_DISABLE_LOGIN_FORM=true \
+    GF_USERS_ALLOW_SIGN_UP=false
+
+# Grafana will use PORT from Railway
+EXPOSE 3000
