@@ -1,0 +1,21 @@
+# Prometheus Dockerfile for Railway
+FROM prom/prometheus:latest
+
+# Copy configuration
+COPY prometheus-railway.yml /etc/prometheus/prometheus.yml
+
+# Railway will set PORT dynamically
+EXPOSE 9090
+
+# Create entrypoint script to use Railway's PORT
+RUN echo '#!/bin/sh\n\
+exec prometheus \\
+  --config.file=/etc/prometheus/prometheus.yml \\
+  --storage.tsdb.path=/prometheus \\
+  --web.console.libraries=/usr/share/prometheus/console_libraries \\
+  --web.console.templates=/usr/share/prometheus/consoles \\
+  --web.enable-lifecycle \\
+  --web.listen-address=:${PORT:-9090}' > /entrypoint.sh && \
+    chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]

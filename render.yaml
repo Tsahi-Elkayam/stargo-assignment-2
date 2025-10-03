@@ -1,0 +1,58 @@
+services:
+  # Bitcoin Exporter Service
+  - type: web
+    name: bitcoin-exporter
+    env: docker
+    dockerfilePath: ./Dockerfile.simple
+    region: oregon
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: EXPORTER_PORT
+        value: 8000
+      - key: SCRAPE_INTERVAL
+        value: 60
+
+  # Prometheus Service
+  - type: web
+    name: prometheus
+    env: docker
+    dockerfilePath: ./Dockerfile.prometheus
+    region: oregon
+    plan: free
+    healthCheckPath: /-/healthy
+    envVars:
+      - key: PORT
+        value: 9090
+      - key: BITCOIN_EXPORTER_URL
+        fromService:
+          type: web
+          name: bitcoin-exporter
+          property: host
+
+  # Grafana Service
+  - type: web
+    name: grafana
+    env: docker
+    dockerfilePath: ./Dockerfile.grafana
+    region: oregon
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: GF_SERVER_HTTP_PORT
+        value: 3000
+      - key: PORT
+        value: 3000
+      - key: GF_AUTH_ANONYMOUS_ENABLED
+        value: true
+      - key: GF_AUTH_ANONYMOUS_ORG_ROLE
+        value: Admin
+      - key: GF_SECURITY_ALLOW_EMBEDDING
+        value: true
+      - key: PROMETHEUS_URL
+        fromService:
+          type: web
+          name: prometheus
+          property: host

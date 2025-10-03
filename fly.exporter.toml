@@ -1,0 +1,29 @@
+# Fly.io configuration for Bitcoin Exporter
+app = "bitcoin-exporter"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile.simple"
+
+[env]
+  EXPORTER_PORT = "8000"
+  SCRAPE_INTERVAL = "60"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/health"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256

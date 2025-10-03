@@ -100,8 +100,8 @@ class BitcoinExporter:
     def run(self):
         """Run the exporter."""
         try:
-            # Get configuration
-            port = self.config.get('exporter', {}).get('port', 8000)
+            # Get configuration - Railway provides PORT env var
+            port = int(os.environ.get('PORT', self.config.get('exporter', {}).get('port', 8000)))
             interval = self.config.get('exporter', {}).get('interval', 60)
             
             # Start combined metrics and health server

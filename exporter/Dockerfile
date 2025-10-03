@@ -37,9 +37,9 @@ USER exporter
 # Expose metrics port
 EXPOSE 8000
 
-# Health check
+# Health check - use dynamic PORT from environment
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/metrics')" || exit 1
+    CMD python -c "import os, urllib.request; urllib.request.urlopen(f'http://localhost:{os.environ.get(\"PORT\", 8000)}/health')" || exit 1
 
 # Set working directory to src for proper imports
 WORKDIR /app/src
