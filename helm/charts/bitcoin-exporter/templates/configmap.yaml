@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: bitcoin-monitoring
+data:
+  app-config.yaml: |
+    # Application Configuration
+    app:
+      name: bitcoin-price-monitor
+      version: 1.0.0
+      environment: ${ENV:local}
+
+    exporter:
+      port: 8000
+      interval: 60  # seconds
+      timeout: 30   # seconds
+
+    api:
+      provider: coindesk
+      endpoint: https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd
+      retry:
+        max_attempts: 3
+        backoff: 2
+
+    metrics:
+      namespace: bitcoin
+      subsystem: price
+
+    logging:
+      level: INFO
+      format: json
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: bitcoin-monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 60s
+      evaluation_interval: 60s
+
+    scrape_configs:
+      - job_name: 'bitcoin-exporter'
+        static_configs:
+          - targets: ['bitcoin-exporter:8000']
+        scrape_interval: 60s
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: bitcoin-monitoring
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus:9090
+        isDefault: true
+        uid: PBFA97CFB590B2093
+        editable: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-config
+  namespace: bitcoin-monitoring
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: 'Bitcoin Dashboards'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        options:
+          path: /var/lib/grafana/dashboards
+          foldersFromFilesStructure: false

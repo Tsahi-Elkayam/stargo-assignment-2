@@ -1,0 +1,25 @@
+# Application Configuration
+app:
+  name: bitcoin-price-monitor
+  version: 1.0.0
+  environment: ${ENV:local}
+
+exporter:
+  port: 8000
+  interval: 60  # seconds
+  timeout: 30   # seconds
+  
+api:
+  provider: coindesk
+  endpoint: https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd
+  retry:
+    max_attempts: 3
+    backoff: 2
+
+metrics:
+  namespace: bitcoin
+  subsystem: price
+  
+logging:
+  level: INFO
+  format: json

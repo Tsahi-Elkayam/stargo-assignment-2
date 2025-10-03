@@ -1,0 +1,69 @@
+# Grafana Helm Chart Values
+# helm install grafana grafana/grafana -f grafana-values.yaml -n monitoring
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hosts:
+    - grafana.local
+  path: /
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+# Anonymous access
+auth:
+  anonymous:
+    enabled: true
+    org_role: Admin
+    
+auth.basic:
+  enabled: false
+
+# Disable login form
+grafana.ini:
+  auth:
+    disable_login_form: true
+  auth.anonymous:
+    enabled: true
+    org_role: Admin
+
+# Data source configuration
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus-server.monitoring.svc.cluster.local
+        access: proxy
+        isDefault: true
+        editable: false
+
+# Dashboard provisioning
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: 'bitcoin'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        options:
+          path: /var/lib/grafana/dashboards/bitcoin
+
+dashboards:
+  bitcoin:
+    bitcoin-dashboard:
+      file: dashboards/bitcoin-simple.json
+
+# Persistence
+persistence:
+  enabled: true
+  size: 1Gi

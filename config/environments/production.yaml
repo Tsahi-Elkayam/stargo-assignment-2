@@ -1,0 +1,23 @@
+# Production environment configuration
+exporter:
+  port: 8000
+  interval: 60
+
+api:
+  timeout: 30
+  retry:
+    max_attempts: 5
+    backoff: 2
+
+logging:
+  level: INFO
+  format: json
+
+# Production Kubernetes settings
+kubernetes:
+  namespace: monitoring
+  ingress:
+    enabled: true
+    hosts:
+      - prometheus.local
+      - grafana.local

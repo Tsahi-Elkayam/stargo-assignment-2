@@ -1,0 +1,41 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: bitcoin-exporter
+  namespace: monitoring
+  labels:
+    app: bitcoin-exporter
+    prometheus: kube-prometheus
+spec:
+  selector:
+    matchLabels:
+      app: bitcoin-exporter
+  endpoints:
+  - port: metrics
+    interval: 60s
+    path: /metrics
+    scrapeTimeout: 10s
+    relabelings:
+    - sourceLabels: [__address__]
+      targetLabel: __param_target
+    - sourceLabels: [__param_target]
+      targetLabel: instance
+    - targetLabel: __address__
+      replacement: bitcoin-exporter:8000
+---
+apiVersion: v1
+kind: ServiceMonitor
+metadata:
+  name: bitcoin-exporter-health
+  namespace: monitoring
+  labels:
+    app: bitcoin-exporter
+spec:
+  selector:
+    matchLabels:
+      app: bitcoin-exporter
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /health
+    scrapeTimeout: 5s

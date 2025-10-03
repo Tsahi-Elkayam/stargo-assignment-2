@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bitcoin-exporter
+  namespace: bitcoin-monitoring
+  labels:
+    app: bitcoin-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bitcoin-exporter
+  template:
+    metadata:
+      labels:
+        app: bitcoin-exporter
+    spec:
+      containers:
+      - name: bitcoin-exporter
+        image: bitcoin-exporter:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+          name: metrics
+        env:
+        - name: ENV
+          value: "local"
+        - name: LOG_LEVEL
+          value: "INFO"
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: app-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bitcoin-exporter
+  namespace: bitcoin-monitoring
+  labels:
+    app: bitcoin-exporter
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: metrics
+  selector:
+    app: bitcoin-exporter

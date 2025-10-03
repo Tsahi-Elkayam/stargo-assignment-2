@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(curl:*)",
+      "Bash(python:*)",
+      "Bash(kubectl:*)",
+      "Bash(minikube image load:*)",
+      "Bash(chmod:*)",
+      "Bash(minikube addons:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

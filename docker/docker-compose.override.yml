@@ -1,0 +1,62 @@
+# Docker Compose Override for Development
+# This file is automatically loaded by docker-compose and overrides settings in docker-compose.yml
+# Use for development-specific configurations
+
+services:
+  bitcoin-exporter:
+    build:
+      context: ../exporter
+      dockerfile: Dockerfile
+      args:
+        - BUILD_ENV=development
+    environment:
+      - ENV=development
+      - LOG_LEVEL=DEBUG
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Mount source code for hot-reload during development
+      - ../exporter/src:/app/src:ro
+      - ../config:/app/config:ro
+    # Enable stdin and tty for debugging
+    stdin_open: true
+    tty: true
+
+  prometheus:
+    environment:
+      - log.level=debug
+    volumes:
+      # Mount config for easy updates
+      - ../helm/values/prometheus-config.yaml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+
+  grafana:
+    environment:
+      - GF_LOG_LEVEL=debug
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_USERS_DEFAULT_THEME=dark
+    volumes:
+      # Mount dashboards for hot-reload
+      - ../dashboards:/var/lib/grafana/dashboards:ro
+      - ../dashboards/provisioning/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
+      - ../helm/values/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+
+  # Optional: Add Prometheus Pushgateway for testing
+  pushgateway:
+    image: prom/pushgateway:latest
+    container_name: pushgateway
+    restart: unless-stopped
+    ports:
+      - "9091:9091"
+    networks:
+      - monitoring
+
+volumes:
+  prometheus-data:
+  grafana-data:

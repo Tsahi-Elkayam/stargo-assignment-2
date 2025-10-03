@@ -1,0 +1,47 @@
+# Prometheus Helm Chart Values
+# helm install prometheus prometheus-community/prometheus -f prometheus-values.yaml -n monitoring
+
+server:
+  service:
+    type: ClusterIP
+    servicePort: 80
+    targetPort: 9090
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - prometheus.local
+    path: /
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+    
+  # Scrape configuration
+  serverFiles:
+    prometheus.yml:
+      global:
+        scrape_interval: 60s
+        evaluation_interval: 60s
+      
+      scrape_configs:
+        - job_name: 'bitcoin-exporter'
+          static_configs:
+            - targets: ['bitcoin-exporter.monitoring.svc.cluster.local:8000']
+          scrape_interval: 60s
+          scrape_timeout: 10s
+
+# Disable other components we don't need
+alertmanager:
+  enabled: false
+
+pushgateway:
+  enabled: false
+
+nodeExporter:
+  enabled: false
+
+# Persistence
+server:
+  persistentVolume:
+    enabled: true
+    size: 8Gi

@@ -1,0 +1,44 @@
+# Metrics Definitions
+metrics:
+  - name: current_price
+    type: gauge
+    description: "Current cryptocurrency price"
+    labels:
+      - currency
+      - source
+    
+  - name: price_change_24h
+    type: gauge
+    description: "24-hour price change percentage"
+    labels:
+      - currency
+    
+  - name: daily_high
+    type: gauge
+    description: "Daily maximum price"
+    labels:
+      - currency
+    
+  - name: daily_low
+    type: gauge
+    description: "Daily minimum price"
+    labels:
+      - currency
+    
+  - name: volume_24h
+    type: gauge
+    description: "24-hour trading volume"
+    labels:
+      - currency
+    
+  - name: api_requests_total
+    type: counter
+    description: "Total API requests made"
+    labels:
+      - status
+      - endpoint
+    
+  - name: api_latency_seconds
+    type: histogram
+    description: "API request latency"
+    buckets: [0.1, 0.25, 0.5, 1, 2.5, 5, 10]

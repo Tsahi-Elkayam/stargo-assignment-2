@@ -1,0 +1,19 @@
+# Local environment configuration
+exporter:
+  port: 8000
+  interval: 60
+
+api:
+  timeout: 10
+  retry:
+    max_attempts: 3
+
+logging:
+  level: DEBUG
+  format: text
+
+# Local Kubernetes settings
+kubernetes:
+  namespace: monitoring
+  ingress:
+    enabled: false

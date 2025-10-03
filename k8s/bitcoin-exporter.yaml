@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bitcoin-exporter
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bitcoin-exporter
+  template:
+    metadata:
+      labels:
+        app: bitcoin-exporter
+    spec:
+      containers:
+      - name: bitcoin-exporter
+        image: bitcoin-exporter:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: metrics
+        env:
+        - name: ENV
+          value: "production"
+        - name: LOG_LEVEL
+          value: "INFO"
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: bitcoin-exporter-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bitcoin-exporter
+  namespace: monitoring
+  labels:
+    app: bitcoin-exporter
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: metrics
+  selector:
+    app: bitcoin-exporter
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bitcoin-exporter-config
+  namespace: monitoring
+data:
+  app-config.yaml: |
+    app:
+      name: bitcoin-price-monitor
+      version: 1.0.0
+      environment: production
+    
+    exporter:
+      port: 8000
+      interval: 60
+      timeout: 30
+      
+    api:
+      provider: coindesk
+      endpoint: https://api.coindesk.com/v1/bpi/currentprice.json
+      retry:
+        max_attempts: 3
+        backoff: 2
+    
+    metrics:
+      namespace: bitcoin
+      subsystem: price
+      
+    logging:
+      level: INFO
+      format: json
