@@ -1,19 +1,42 @@
-# Simple Railway Dockerfile - Minimal configuration that works
+# Multi-stage build for optimized image
+FROM python:3.11-slim as builder
+
+WORKDIR /build
+
+# Copy requirements from exporter directory
+COPY exporter/requirements.txt .
+
+# Install dependencies
+RUN pip install --user --no-cache-dir -r requirements.txt
+
+# Production stage
 FROM python:3.11-slim
+
+# Create non-root user
+RUN useradd -m -u 1000 exporter && \
+    mkdir -p /app/config && \
+    chown -R exporter:exporter /app
 
 WORKDIR /app
 
-# Install only production dependencies
-RUN pip install --no-cache-dir \
-    prometheus-client==0.19.0 \
-    requests==2.31.0 \
-    pyyaml==6.0.1
+# Copy dependencies from builder
+COPY --from=builder /root/.local /home/exporter/.local
 
-# Copy everything
-COPY . .
+# Copy application code from exporter directory
+COPY --chown=exporter:exporter exporter/src/ ./src/
 
-# Railway sets PORT automatically
-ENV PYTHONUNBUFFERED=1
+# Set Python path
+ENV PATH=/home/exporter/.local/bin:$PATH
+ENV PYTHONPATH=/app
 
-# Start the app
-CMD ["python", "exporter/src/main.py"]
+USER exporter
+
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD python -c "import os, urllib.request; urllib.request.urlopen(f'http://localhost:{os.environ.get(\"PORT\", 8000)}/health')" || exit 1
+
+WORKDIR /app/src
+
+CMD ["python", "main.py"]

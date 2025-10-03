@@ -1,21 +1,11 @@
-# Prometheus Dockerfile for Render
+# Prometheus for Render
 FROM prom/prometheus:latest
 
-# Copy configuration
-COPY prometheus.yml /etc/prometheus/prometheus.yml
+# Copy the working config
+COPY helm/values/prometheus-config.yaml /etc/prometheus/prometheus.yml
 
-# Render will set PORT dynamically
 EXPOSE 9090
 
-# Create entrypoint script to use Render's PORT
-RUN echo '#!/bin/sh\n\
-exec prometheus \\
-  --config.file=/etc/prometheus/prometheus.yml \\
-  --storage.tsdb.path=/prometheus \\
-  --web.console.libraries=/usr/share/prometheus/console_libraries \\
-  --web.console.templates=/usr/share/prometheus/consoles \\
-  --web.enable-lifecycle \\
-  --web.listen-address=:${PORT:-9090}' > /entrypoint.sh && \
-    chmod +x /entrypoint.sh
-
-ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
+CMD ["--config.file=/etc/prometheus/prometheus.yml", \
+     "--storage.tsdb.path=/prometheus", \
+     "--web.listen-address=:${PORT:-9090}"]
