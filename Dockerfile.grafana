@@ -1,30 +1,12 @@
-# Grafana for Render with dynamic datasource config
+# Grafana for Render
 FROM grafana/grafana:latest
 
 # Copy dashboards and provisioning
 COPY dashboards /var/lib/grafana/dashboards
 COPY dashboards/provisioning/dashboards.yaml /etc/grafana/provisioning/dashboards/dashboards.yaml
 
-# Create entrypoint script inline
-RUN echo '#!/bin/sh' > /entrypoint.sh && \
-    echo 'mkdir -p /etc/grafana/provisioning/datasources' >> /entrypoint.sh && \
-    echo 'cat > /etc/grafana/provisioning/datasources/datasources.yaml <<EOF' >> /entrypoint.sh && \
-    echo 'apiVersion: 1' >> /entrypoint.sh && \
-    echo '' >> /entrypoint.sh && \
-    echo 'datasources:' >> /entrypoint.sh && \
-    echo '  - name: Prometheus' >> /entrypoint.sh && \
-    echo '    type: prometheus' >> /entrypoint.sh && \
-    echo '    access: proxy' >> /entrypoint.sh && \
-    echo '    url: https://${PROMETHEUS_URL}' >> /entrypoint.sh && \
-    echo '    isDefault: true' >> /entrypoint.sh && \
-    echo '    editable: false' >> /entrypoint.sh && \
-    echo 'EOF' >> /entrypoint.sh && \
-    echo '' >> /entrypoint.sh && \
-    echo 'echo "Grafana datasource config generated"' >> /entrypoint.sh && \
-    echo 'cat /etc/grafana/provisioning/datasources/datasources.yaml' >> /entrypoint.sh && \
-    echo '' >> /entrypoint.sh && \
-    echo 'exec /run.sh' >> /entrypoint.sh && \
-    chmod +x /entrypoint.sh
+# Add entrypoint script (ADD sets executable automatically)
+ADD grafana-start.sh /grafana-start.sh
 
 # Environment setup
 ENV GF_AUTH_ANONYMOUS_ENABLED=true \
@@ -34,4 +16,4 @@ ENV GF_AUTH_ANONYMOUS_ENABLED=true \
 
 EXPOSE 3000
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "/grafana-start.sh"]
