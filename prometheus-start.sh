@@ -1,6 +1,11 @@
 #!/bin/sh
 set -e
 
+echo "=== Prometheus Startup ==="
+echo "BITCOIN_EXPORTER_URL: ${BITCOIN_EXPORTER_URL}"
+echo "PORT: ${PORT}"
+echo "=========================="
+
 # Generate Prometheus config with actual Render URL
 cat > /etc/prometheus/prometheus.yml <<EOF
 global:
@@ -16,11 +21,13 @@ scrape_configs:
     scrape_timeout: 10s
 EOF
 
-echo "Prometheus config generated:"
+echo "Generated Prometheus config:"
 cat /etc/prometheus/prometheus.yml
+echo "=========================="
 
-# Start Prometheus
+# Start Prometheus - bind to all interfaces
 exec /bin/prometheus \
   --config.file=/etc/prometheus/prometheus.yml \
   --storage.tsdb.path=/prometheus \
-  --web.listen-address=:${PORT:-9090}
+  --web.listen-address=0.0.0.0:${PORT:-9090} \
+  --log.level=info

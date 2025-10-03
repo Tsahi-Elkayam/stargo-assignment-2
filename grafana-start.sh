@@ -1,6 +1,11 @@
 #!/bin/sh
 set -e
 
+echo "=== Grafana Startup ==="
+echo "PROMETHEUS_URL: ${PROMETHEUS_URL}"
+echo "PORT: ${PORT}"
+echo "=========================="
+
 # Generate Grafana datasource config with actual Render URL
 mkdir -p /etc/grafana/provisioning/datasources
 
@@ -16,8 +21,9 @@ datasources:
     editable: false
 EOF
 
-echo "Grafana datasource config generated:"
+echo "Generated Grafana datasource config:"
 cat /etc/grafana/provisioning/datasources/datasources.yaml
+echo "=========================="
 
 # Start Grafana
 exec /run.sh
